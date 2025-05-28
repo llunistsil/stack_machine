@@ -1,6 +1,6 @@
 import logging
 from typing import List, Tuple
-from isa import *
+from src.isa import *
 
 
 class DataPath:
@@ -38,7 +38,6 @@ class DataPath:
         self.pc = INTERRUPT_TABLE['input']
         tick, char = self.input_events.pop(0)
         self.memory.write_word(INPUT_PORT, ord(char))
-        logging.debug("=== INT TRIGGERED ===")
 
 
 class ControlUnit:
@@ -65,19 +64,21 @@ class ControlUnit:
 
     def fetch_execute(self):
         while self.pc_in_bounds():
-            pc_before = self.data_path.pc
             try:
                 self.data_path.check_interrupt(self.ticks)
-                cmd_bytes = self.data_path.memory.mem[pc_before:pc_before + 4]
+
+                cmd_bytes = self.data_path.memory.mem[self.data_path.pc:self.data_path.pc + 4]
                 cmd = decode_command(cmd_bytes)
-                self.log_instruction(cmd, pc_before)
+                self.log_instruction(cmd, self.data_path.pc)
+
                 self.data_path.pc += 4
+
                 self.tick()
                 self.execute(cmd)
                 if cmd.opcode == Opcode.HALT:
                     break
             except Exception as e:
-                logging.error("Error at 0x%04X: %s", pc_before, e)
+                logging.error("Error at 0x%04X: %s", self.data_path.pc, e)
                 break
 
     def pc_in_bounds(self) -> bool:
@@ -143,17 +144,16 @@ def main():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     handler_code = [
-        Command(Opcode.PUSH, INPUT_PORT), # LOAD INPUT_PORT (0xFF00)
-        Command(Opcode.LOAD),
-        Command(Opcode.PUSH, OUTPUT_PORT),  # PUSH OUTPUT_PORT (0xFF01)
-        Command(Opcode.STORE),  # STORE output <- char
+        Command(Opcode.PUSH, INPUT_PORT),
         Command(Opcode.HALT),
     ]
 
     main_code = [
-        Command(Opcode.PUSH, INPUT_PORT),  # LOAD INPUT_PORT (0xFF00)
-        Command(Opcode.LOAD),        # EI
-        Command(Opcode.IRET)  # бесконечный цикл
+        Command(Opcode.PUSH, INPUT_PORT),
+        Command(Opcode.LOAD),
+        Command(Opcode.PUSH, OUTPUT_PORT),
+        Command(Opcode.STORE),
+        Command(Opcode.IRET)
     ]
 
     handler_bin = b''.join(encode_command(c) for c in handler_code)
@@ -163,7 +163,7 @@ def main():
     padding = b'\x00' * pad_len
     binary = handler_bin + padding + main_bin
 
-    input_events = [(1, 'H'), (5, 'i')]
+    input_events = [(1, 'H'), (3, 'i')]
     output, ticks = simulate(binary, input_events)
     print(f"Output: '{output}' Ticks: {ticks}")
 
