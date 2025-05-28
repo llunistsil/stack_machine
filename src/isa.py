@@ -6,7 +6,7 @@ MEMORY_SIZE = 65536
 STACK_SIZE = 1024
 INPUT_PORT = 0xFF00
 OUTPUT_PORT = 0xFF01
-INTERRUPT_TABLE = {'input': 0x1000}
+INTERRUPT_TABLE = {'input': 0x1000}  # Обработчик прерываний ввода по адресу 0x1000
 
 class Opcode(Enum):
     PUSH = 0x01
@@ -44,18 +44,10 @@ class Memory:
         return int.from_bytes(self.mem[addr:addr+4], 'little')
 
     def write_word(self, addr: int, value: int):
-        self.mem[addr:addr+4] = value.to_bytes(4, 'little')
         if addr == OUTPUT_PORT:
-            self.output.append(chr(value))
-
-    def add_string(self, s: str) -> int:
-        addr = self.data_ptr
-        for c in s:
-            self.write_word(addr, ord(c))
-            addr += 4
-        self.write_word(addr, 0)
-        self.data_ptr = addr + 4
-        return addr - len(s) * 4
+            self.output.append(chr(value & 0xFF))
+        else:
+            self.mem[addr:addr+4] = value.to_bytes(4, 'little')
 
 def encode_command(cmd: Command) -> bytes:
     operand = cmd.operand if cmd.operand else 0

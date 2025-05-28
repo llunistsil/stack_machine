@@ -2,7 +2,6 @@ import logging
 from typing import List, Tuple
 from src.isa import *
 
-
 class DataPath:
     def __init__(self, code: bytes, input_tokens: List[Tuple[int, str]]):
         self.memory = Memory()
@@ -38,7 +37,6 @@ class DataPath:
         self.pc = INTERRUPT_TABLE['input']
         tick, char = self.input_events.pop(0)
         self.memory.write_word(INPUT_PORT, ord(char))
-
 
 class ControlUnit:
     def __init__(self, data_path: DataPath):
@@ -132,41 +130,11 @@ class ControlUnit:
             self.data_path.int_enabled = int_enabled
             self.data_path.handling_int = False
 
-
 def simulate(code: bytes, input_schedule):
     dp = DataPath(code, input_schedule)
     cu = ControlUnit(dp)
     cu.fetch_execute()
+    print(f"[DEBUG] Output buffer: {''.join(dp.memory.output)}")
+    print(f"[DEBUG] PC: {dp.pc:04X}")
+    print(f"[DEBUG] Stack: {dp.stack}")
     return ''.join(dp.memory.output), cu.ticks
-
-
-def main():
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
-
-    handler_code = [
-        Command(Opcode.PUSH, INPUT_PORT),
-        Command(Opcode.HALT),
-    ]
-
-    main_code = [
-        Command(Opcode.PUSH, INPUT_PORT),
-        Command(Opcode.LOAD),
-        Command(Opcode.PUSH, OUTPUT_PORT),
-        Command(Opcode.STORE),
-        Command(Opcode.IRET)
-    ]
-
-    handler_bin = b''.join(encode_command(c) for c in handler_code)
-    main_bin = b''.join(encode_command(c) for c in main_code)
-
-    pad_len = INTERRUPT_TABLE['input'] - len(handler_bin)
-    padding = b'\x00' * pad_len
-    binary = handler_bin + padding + main_bin
-
-    input_events = [(1, 'H'), (3, 'i')]
-    output, ticks = simulate(binary, input_events)
-    print(f"Output: '{output}' Ticks: {ticks}")
-
-
-if __name__ == '__main__':
-    main()

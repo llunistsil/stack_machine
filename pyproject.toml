@@ -8,6 +8,9 @@ authors = [
 readme = "README.md"
 requires-python = "^3.9"
 dependencies = [
+    "pytest-golden (>=0.2.2,<0.3.0)",
+    "poetry-core (>=2.0.0,<3.0.0)",
+    "pytest (>=6.2.5)"
 ]
 
 [build-system]
