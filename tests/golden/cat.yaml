@@ -1,0 +1,9 @@
+in_source_code: |
+  /in x;
+  > x;
+in_input_data: "A"
+in_output_format: "text"
+in_log_level: "trace"
+out_compiled: ""
+out_log: ""
+out_output: "A"
