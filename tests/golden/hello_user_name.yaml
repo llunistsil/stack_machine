@@ -1,0 +1,12 @@
+in_source_code: |
+  /out 'What is your name?';
+  /in name;
+  /out 'Hello, ';
+  > name;
+  /out '!';
+in_input_data: "Alice"
+in_output_format: "text"
+in_log_level: "trace"
+out_compiled: ""
+out_log: ""
+out_output: "What is your name?Hello, Alice!"

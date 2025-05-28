@@ -1,0 +1,18 @@
+in_source_code: |
+  /in s;
+  l = 0;
+  while s[l] != 0 : l = l + 1; ;
+  is_pal = 1;
+  i = 0;
+  while i < l / 2 :
+    if s[i] != s[l - i - 1] : is_pal = 0; ;
+    i = i + 1;
+  ;
+  if is_pal == 1 : /out 'yes'; ;
+  if is_pal == 0 : /out 'no'; ;
+in_input_data: "level"
+in_output_format: "text"
+in_log_level: "trace"
+out_compiled: ""
+out_log: ""
+out_output: "yes"
